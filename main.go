@@ -6,8 +6,7 @@ import (
 )
 
 func main() {
-	rl := NewRateLimiter(5*time.Second, 1)
-	rl.FixedWindow()
+	rl := NewFixedWindowRateLimiter(5*time.Second, 1)
 
 	start := time.Now()
 	rl.Consume()
