@@ -23,10 +23,36 @@ func NewFixedWindowRateLimiter(interval time.Duration, limit int) *RateLimiter {
 		for {
 			select {
 			case tick := <-r.ticker.C:
+				//todo len не проваряют
 				for len(r.C) > 0 {
 					<-r.C
 					log.Println("clear", time.Since(tick))
 				}
+			case <-r.stop:
+				return
+			}
+		}
+	}()
+
+	return r
+}
+
+func NewTokenBucketRateLimiter(interval time.Duration, limit int) *RateLimiter {
+	refillRate := interval / time.Duration(limit)
+	r := &RateLimiter{
+		ticker: time.NewTicker(refillRate),
+		C:      make(chan struct{}, limit),
+		stop:   make(chan struct{}),
+	}
+	for i := 0; i < limit; i++ {
+		r.C <- struct{}{}
+	}
+
+	go func() {
+		for {
+			select {
+			case <-r.ticker.C:
+				r.refill()
 			case <-r.stop:
 				return
 			}
@@ -42,8 +68,22 @@ func (r *RateLimiter) Consume() {
 	log.Println("consume", time.Now())
 }
 
+// только для token bucket
+func (r *RateLimiter) Acquire() {
+	<-r.C
+	log.Println("acquire", time.Now())
+}
+
 func (r *RateLimiter) Stop() {
 	r.ticker.Stop()
 	close(r.stop)
 	close(r.C)
+}
+
+func (r *RateLimiter) refill() {
+	select {
+	case r.C <- struct{}{}:
+		log.Println("add")
+	default:
+	}
 }

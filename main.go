@@ -6,16 +6,16 @@ import (
 )
 
 func main() {
-	rl := NewFixedWindowRateLimiter(5*time.Second, 1)
+	rl := NewTokenBucketRateLimiter(5*time.Second, 3)
 
 	start := time.Now()
-	rl.Consume()
-	rl.Consume()
-	rl.Consume()
-	rl.Consume()
-	rl.Consume()
-	rl.Consume()
-	rl.Consume()
+	rl.Acquire()
+	rl.Acquire()
+	rl.Acquire()
+	rl.Acquire()
+	rl.Acquire()
+	rl.Acquire()
+	rl.Acquire()
 
 	fmt.Println(time.Since(start))
 	rl.Stop()
