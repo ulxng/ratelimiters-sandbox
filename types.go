@@ -77,7 +77,6 @@ func (r *RateLimiter) Acquire() {
 func (r *RateLimiter) Stop() {
 	r.ticker.Stop()
 	close(r.stop)
-	close(r.C)
 }
 
 func (r *RateLimiter) refill() {
